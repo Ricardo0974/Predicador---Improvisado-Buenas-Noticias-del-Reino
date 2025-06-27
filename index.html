@@ -1,0 +1,836 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Predicador Improvisado</title>
+    <style>
+        :root {
+            --color-primario: #8B4513;
+            --color-secundario: #5D4037;
+            --color-exito: #4CAF50;
+            --color-peligro: #f44336;
+            --color-info: #2196F3;
+            --color-preparacion: #9C27B0;
+            --color-predicacion: #FF9800;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f5f5;
+            text-align: center;
+            padding: 15px;
+            margin: 0;
+            line-height: 1.6;
+            color: #333;
+        }
+        
+        h1 {
+            color: var(--color-primario);
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
+            font-size: 2rem;
+            margin: 15px 0 5px;
+        }
+        
+        h2 {
+            color: var(--color-secundario);
+            font-size: 1.3rem;
+            margin: 0 0 20px;
+            font-weight: 500;
+        }
+        
+        .contenedor {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        
+        .rueda-container {
+            position: relative;
+            width: 95vw;
+            max-width: 350px;
+            height: 95vw;
+            max-height: 350px;
+            margin: 20px auto;
+        }
+        
+        .rueda {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            position: relative;
+            overflow: hidden;
+            transition: transform 4s cubic-bezier(0.17, 0.67, 0.12, 0.99);
+            transform: rotate(0deg);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            border: 8px solid var(--color-secundario);
+        }
+        
+        .rueda-seccion {
+            position: absolute;
+            width: 50%;
+            height: 50%;
+            transform-origin: bottom right;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            font-weight: bold;
+            font-size: 11px;
+            border: 1px solid rgba(255, 255, 255, 0.7);
+            box-sizing: border-box;
+            color: white;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+            padding: 5px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .rueda-seccion:hover {
+            filter: brightness(1.1);
+            transform: scale(1.02);
+        }
+        
+        .tema {
+            font-size: 12px;
+            margin-bottom: 3px;
+            font-weight: 700;
+            line-height: 1.2;
+        }
+        
+        .texto-rueda {
+            font-size: 9px;
+            font-style: italic;
+            line-height: 1.1;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+        }
+        
+        .dificultad {
+            font-size: 9px;
+            margin-top: 2px;
+            font-weight: bold;
+        }
+        
+        .flecha {
+            position: absolute;
+            top: -12px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 18px solid transparent;
+            border-right: 18px solid transparent;
+            border-top: 28px solid #D32F2F;
+            z-index: 10;
+            filter: drop-shadow(0 3px 5px rgba(0,0,0,0.3));
+        }
+        
+        .botones-principales {
+            margin: 20px 0;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 10px;
+        }
+        
+        .botones-temporizador {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 10px;
+        }
+        
+        .btn {
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 15px;
+            font-weight: 600;
+            transition: all 0.3s;
+            min-width: 100px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+        
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 10px rgba(0,0,0,0.3);
+        }
+        
+        .btn:active {
+            transform: translateY(1px);
+        }
+        
+        .btn:disabled {
+            opacity: 0.6;
+            transform: none !important;
+            box-shadow: none !important;
+            cursor: not-allowed;
+        }
+        
+        .btn-girar {
+            background-color: var(--color-exito);
+        }
+        
+        .btn-detener {
+            background-color: var(--color-peligro);
+        }
+        
+        .btn-reiniciar {
+            background-color: var(--color-info);
+        }
+        
+        .btn-preparacion {
+            background-color: var(--color-preparacion);
+        }
+        
+        .btn-predicacion {
+            background-color: var(--color-predicacion);
+        }
+        
+        .btn-aceptar {
+            background-color: var(--color-exito);
+            font-size: 16px;
+            padding: 12px 25px;
+            margin-top: 10px;
+        }
+        
+        .panel-jugadores {
+            background-color: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+            margin: 15px auto;
+            width: 90%;
+            max-width: 350px;
+        }
+        
+        .input-jugador {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 8px;
+            border: 2px solid #ddd;
+            width: 80%;
+            font-size: 15px;
+            transition: all 0.3s;
+        }
+        
+        .input-jugador:focus {
+            border-color: var(--color-primario);
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(139, 69, 19, 0.2);
+        }
+        
+        #lista-jugadores {
+            list-style-type: none;
+            padding: 0;
+            margin: 15px 0 0;
+            text-align: left;
+        }
+        
+        #lista-jugadores li {
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: background-color 0.3s;
+        }
+        
+        #lista-jugadores li:hover {
+            background-color: #f9f9f9;
+        }
+        
+        .panel-tema {
+            background-color: #fff9e6;
+            padding: 20px;
+            border-radius: 12px;
+            margin: 20px auto;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+            border-left: 5px solid var(--color-primario);
+        }
+        
+        .panel-tiempo {
+            background-color: white;
+            padding: 20px;
+            border-radius: 12px;
+            margin: 20px auto;
+            width: 90%;
+            max-width: 350px;
+            box-shadow: 0 3px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .temporizador {
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin: 15px 0;
+            font-family: 'Courier New', monospace;
+        }
+        
+        #temporizador-prep {
+            color: var(--color-preparacion);
+        }
+        
+        #temporizador-pred {
+            color: var(--color-predicacion);
+        }
+        
+        .mensaje-tiempo {
+            font-size: 1.3rem;
+            font-weight: bold;
+            margin: 20px;
+            padding: 15px;
+            border-radius: 8px;
+            background-color: #ffebee;
+            color: var(--color-peligro);
+            animation: pulse 0.8s infinite alternate;
+            display: none;
+        }
+        
+        @keyframes pulse {
+            from { transform: scale(1); opacity: 0.8; }
+            to { transform: scale(1.05); opacity: 1; }
+        }
+        
+        .reglas {
+            background-color: white;
+            padding: 20px;
+            border-radius: 12px;
+            margin: 20px auto;
+            width: 90%;
+            max-width: 600px;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+            text-align: left;
+        }
+        
+        .reglas h3 {
+            color: var(--color-primario);
+            margin-top: 0;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 10px;
+        }
+        
+        .reglas p {
+            margin-bottom: 10px;
+        }
+        
+        .reglas strong {
+            color: var(--color-secundario);
+        }
+        
+        @media (min-width: 768px) {
+            .contenedor {
+                flex-direction: row;
+                flex-wrap: wrap;
+                justify-content: space-around;
+                align-items: flex-start;
+            }
+            
+            .rueda-container {
+                max-width: 380px;
+                max-height: 380px;
+            }
+            
+            .rueda-seccion {
+                font-size: 12px;
+            }
+            
+            .tema {
+                font-size: 13px;
+            }
+            
+            .texto-rueda {
+                font-size: 10px;
+            }
+            
+            .panel-jugadores {
+                margin: 0;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .btn {
+                padding: 8px 15px;
+                font-size: 14px;
+                min-width: 80px;
+            }
+            
+            .temporizador {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>Predicador Improvisado</h1>
+    <h2>Buenas Noticias del Reino</h2>
+
+    <div class="contenedor">
+        <div class="rueda-container">
+            <div class="flecha"></div>
+            <div class="rueda" id="rueda"></div>
+        </div>
+
+        <div class="panel-jugadores">
+            <h3>Jugadores</h3>
+            <input type="text" id="nombre-jugador" class="input-jugador" placeholder="Nombre del jugador">
+            <button id="btnAceptar" class="btn btn-aceptar">AÑADIR JUGADOR</button>
+            <ul id="lista-jugadores"></ul>
+        </div>
+    </div>
+
+    <div id="panel-tema" class="panel-tema" style="display: none;">
+        <h3>Tema Seleccionado</h3>
+        <div id="tema-seleccionado"></div>
+    </div>
+    
+    <div id="panel-prep" class="panel-tiempo" style="display: none;">
+        <h3>Preparación</h3>
+        <div id="temporizador-prep" class="temporizador">01:00</div>
+        <div class="botones-temporizador">
+            <button id="btnIniciarPrep" class="btn btn-preparacion">INICIAR</button>
+            <button id="btnDetenerPrep" class="btn btn-predicacion" style="display: none;">DETENER</button>
+        </div>
+    </div>
+    
+    <div id="panel-pred" class="panel-tiempo" style="display: none;">
+        <h3>Predicación</h3>
+        <div id="temporizador-pred" class="temporizador">03:00</div>
+        <div class="botones-temporizador">
+            <button id="btnIniciarPred" class="btn btn-predicacion">INICIAR</button>
+            <button id="btnDetenerPred" class="btn btn-preparacion" style="display: none;">DETENER</button>
+        </div>
+    </div>
+    
+    <div id="mensaje-tiempo" class="mensaje-tiempo"></div>
+
+    <div class="botones-principales">
+        <button id="btnGirar" class="btn btn-girar">GIRAR RUEDA</button>
+        <button id="btnDetener" class="btn btn-detener" disabled>DETENER</button>
+        <button id="btnReiniciar" class="btn btn-reiniciar">REINICIAR</button>
+    </div>
+
+    <div class="reglas">
+        <h3>Reglas del Juego</h3>
+        <p><strong>1. Preparación:</strong> Cada jugador tiene 1 minuto para preparar su predicación sobre el tema seleccionado.</p>
+        <p><strong>2. Predicación:</strong> Luego tiene 3 minutos para exponer el tema ante los demás.</p>
+        <p><strong>3. Puntuación:</strong> Los temas con más estrellas ⭐⭐⭐ dan más puntos.</p>
+        <p><strong>4. Ganador:</strong> El jugador con más puntos al final de todas las rondas gana.</p>
+    </div>
+
+    <!-- Sonidos -->
+    <audio id="sonidoGirar" src="https://assets.mixkit.co/sfx/preview/mixkit-game-show-spin-wheel-1920.mp3" preload="auto"></audio>
+    <audio id="sonidoDetener" src="https://assets.mixkit.co/sfx/preview/mixkit-arcade-game-jump-coin-216.mp3" preload="auto"></audio>
+    <audio id="sonidoFinTiempo" src="https://assets.mixkit.co/sfx/preview/mixkit-alarm-digital-clock-beep-989.mp3" preload="auto"></audio>
+    <audio id="sonidoGanar" src="https://assets.mixkit.co/sfx/preview/mixkit-winning-chimes-2015.mp3" preload="auto"></audio>
+
+    <script>
+        // Datos de la rueda (temas bíblicos)
+        const temasOriginal = [
+            { 
+                tema: "La Creación", 
+                texto: "En el principio creó Dios los cielos y la tierra. Génesis 1:1", 
+                color: "#FF7043", 
+                dificultad: 1,
+                numero: 3
+            },
+            { 
+                tema: "El Amor", 
+                texto: "El amor es sufrido, es benigno; el amor no tiene envidia. 1 Corintios 13:4", 
+                color: "#42A5F5", 
+                dificultad: 2,
+                numero: 5
+            },
+            { 
+                tema: "La Fe", 
+                texto: "Es, pues, la fe la certeza de lo que se espera, la convicción de lo que no se ve. Hebreos 11:1", 
+                color: "#66BB6A", 
+                dificultad: 2,
+                numero: 5
+            },
+            { 
+                tema: "El Perdón", 
+                texto: "Antes sed benignos unos con otros, misericordiosos, perdonándoos unos a otros. Efesios 4:32", 
+                color: "#AB47BC", 
+                dificultad: 3,
+                numero: 8
+            },
+            { 
+                tema: "La Esperanza", 
+                texto: "Porque en esperanza fuimos salvos; pero la esperanza que se ve, no es esperanza. Romanos 8:24", 
+                color: "#FFA726", 
+                dificultad: 1,
+                numero: 3
+            },
+            { 
+                tema: "La Salvación", 
+                texto: "Porque de tal manera amó Dios al mundo, que ha dado a su Hijo unigénito. Juan 3:16", 
+                color: "#26C6DA", 
+                dificultad: 3,
+                numero: 8
+            }
+        ];
+
+        // Variables del juego
+        let anguloActual = 0;
+        let girando = false;
+        let intervalo;
+        let prepInterval;
+        let predInterval;
+        let tiempoPrep = 60; // 1 minuto preparación
+        let tiempoPred = 180; // 3 minutos predicación
+        let jugadores = [];
+        let temasDisponibles = [...temasOriginal];
+        let temaActual = null;
+        let jugadorActualIndex = 0;
+
+        // Elementos del DOM
+        const rueda = document.getElementById('rueda');
+        const btnGirar = document.getElementById('btnGirar');
+        const btnDetener = document.getElementById('btnDetener');
+        const btnReiniciar = document.getElementById('btnReiniciar');
+        const btnAceptar = document.getElementById('btnAceptar');
+        const btnIniciarPrep = document.getElementById('btnIniciarPrep');
+        const btnDetenerPrep = document.getElementById('btnDetenerPrep');
+        const btnIniciarPred = document.getElementById('btnIniciarPred');
+        const btnDetenerPred = document.getElementById('btnDetenerPred');
+        const panelTema = document.getElementById('panel-tema');
+        const panelPrep = document.getElementById('panel-prep');
+        const panelPred = document.getElementById('panel-pred');
+        const mensajeTiempo = document.getElementById('mensaje-tiempo');
+
+        // Sonidos
+        const sonidoGirar = document.getElementById('sonidoGirar');
+        const sonidoDetener = document.getElementById('sonidoDetener');
+        const sonidoFinTiempo = document.getElementById('sonidoFinTiempo');
+        const sonidoGanar = document.getElementById('sonidoGanar');
+
+        // Inicializar la rueda
+        function inicializarRueda() {
+            rueda.innerHTML = '';
+
+            if (temasDisponibles.length === 0) {
+                temasDisponibles = [...temasOriginal];
+                mostrarMensaje("¡Todos los temas usados! Reiniciando la rueda.");
+            }
+
+            temasDisponibles.forEach((item, index) => {
+                const angulo = (360 / temasDisponibles.length) * index;
+                const seccion = document.createElement('div');
+                seccion.className = 'rueda-seccion';
+                seccion.style.transform = `rotate(${angulo}deg)`;
+                seccion.style.backgroundColor = item.color;
+                seccion.innerHTML = `
+                    <span class="tema">${item.tema}</span>
+                    <span class="texto-rueda">${item.texto.substring(0, 40)}${item.texto.length > 40 ? '...' : ''}</span>
+                    <span class="dificultad">${'⭐'.repeat(item.dificultad)}</span>
+                `;
+                rueda.appendChild(seccion);
+            });
+        }
+
+        // Girar la rueda
+        function girarRueda() {
+            if (girando || temasDisponibles.length === 0) return;
+            
+            girando = true;
+            btnGirar.disabled = true;
+            btnDetener.disabled = false;
+            sonidoGirar.play();
+            
+            const vueltas = 5 + Math.floor(Math.random() * 3);
+            const anguloFinal = anguloActual + (360 * vueltas) + Math.floor(Math.random() * 360);
+
+            intervalo = setInterval(() => {
+                anguloActual += 5;
+                rueda.style.transform = `rotate(${anguloActual}deg)`;
+                
+                if (anguloActual >= anguloFinal) {
+                    clearInterval(intervalo);
+                    detenerRueda();
+                }
+            }, 20);
+        }
+
+        // Detener la rueda
+        function detenerRueda() {
+            if (!girando) return;
+            
+            clearInterval(intervalo);
+            girando = false;
+            btnDetener.disabled = true;
+            sonidoDetener.play();
+
+            const anguloPorSeccion = 360 / temasDisponibles.length;
+            const anguloNormalizado = anguloActual % 360;
+            const indiceSeleccionado = Math.floor(((360 - anguloNormalizado) % 360) / anguloPorSeccion);
+            
+            temaActual = temasDisponibles[indiceSeleccionado];
+            temasDisponibles.splice(indiceSeleccionado, 1);
+
+            mostrarTemaSeleccionado();
+            prepararSiguienteTurno();
+        }
+
+        // Mostrar tema seleccionado
+        function mostrarTemaSeleccionado() {
+            document.getElementById('tema-seleccionado').innerHTML = `
+                <p><strong>Tema:</strong> ${temaActual.tema}</p>
+                <p><strong>Texto Bíblico:</strong> ${temaActual.texto}</p>
+                <p><strong>Dificultad:</strong> ${'⭐'.repeat(temaActual.dificultad)}</p>
+                <p><strong>Puntos:</strong> ${temaActual.numero}</p>
+            `;
+            panelTema.style.display = 'block';
+        }
+
+        // Preparar siguiente turno
+        function prepararSiguienteTurno() {
+            if (jugadores.length === 0) return;
+            
+            const jugadorActual = jugadores[jugadorActualIndex];
+            mostrarMensaje(`Turno de: ${jugadorActual.nombre}`, 2000);
+            
+            resetearTemporizadores();
+            panelPrep.style.display = 'block';
+            panelPred.style.display = 'none';
+        }
+
+        // Iniciar preparación (1 minuto)
+        function iniciarPreparacion() {
+            clearInterval(prepInterval);
+            tiempoPrep = 60;
+            actualizarTemporizadorPrep();
+            
+            btnIniciarPrep.style.display = 'none';
+            btnDetenerPrep.style.display = 'inline-block';
+            
+            prepInterval = setInterval(() => {
+                tiempoPrep--;
+                actualizarTemporizadorPrep();
+                
+                if (tiempoPrep <= 0) {
+                    clearInterval(prepInterval);
+                    tiempoTerminado('preparacion');
+                }
+            }, 1000);
+        }
+
+        // Detener preparación
+        function detenerPreparacion() {
+            clearInterval(prepInterval);
+            btnIniciarPrep.style.display = 'inline-block';
+            btnDetenerPrep.style.display = 'none';
+        }
+
+        // Iniciar predicación (3 minutos)
+        function iniciarPredicacion() {
+            clearInterval(predInterval);
+            tiempoPred = 180;
+            actualizarTemporizadorPred();
+            
+            btnIniciarPred.style.display = 'none';
+            btnDetenerPred.style.display = 'inline-block';
+            
+            predInterval = setInterval(() => {
+                tiempoPred--;
+                actualizarTemporizadorPred();
+                
+                if (tiempoPred <= 0) {
+                    clearInterval(predInterval);
+                    tiempoTerminado('predicacion');
+                }
+            }, 1000);
+        }
+
+        // Detener predicación
+        function detenerPredicacion() {
+            clearInterval(predInterval);
+            btnIniciarPred.style.display = 'inline-block';
+            btnDetenerPred.style.display = 'none';
+        }
+
+        // Cuando termina un tiempo
+        function tiempoTerminado(tipo) {
+            sonidoFinTiempo.play();
+            mostrarMensaje(`¡Tiempo de ${tipo} terminado!`, 3000);
+            
+            if (tipo === 'preparacion') {
+                panelPrep.style.display = 'none';
+                panelPred.style.display = 'block';
+            } else {
+                asignarPuntos();
+                setTimeout(() => {
+                    panelPred.style.display = 'none';
+                    resetearTemporizadores();
+                    prepararSiguienteTurno();
+                }, 3000);
+            }
+        }
+
+        // Asignar puntos al jugador
+        function asignarPuntos() {
+            if (jugadores.length === 0) return;
+            
+            const jugadorActual = jugadores[jugadorActualIndex];
+            jugadorActual.puntaje += temaActual.numero;
+            
+            if (temaActual.dificultad === 3) {
+                sonidoGanar.play();
+            }
+            
+            actualizarListaJugadores();
+            jugadorActualIndex = (jugadorActualIndex + 1) % jugadores.length;
+        }
+
+        // Actualizar temporizadores
+        function actualizarTemporizadorPrep() {
+            const minutos = Math.floor(tiempoPrep / 60);
+            const segundos = tiempoPrep % 60;
+            document.getElementById('temporizador-prep').textContent = 
+                `${minutos.toString().padStart(2, '0')}:${segundos.toString().padStart(2, '0')}`;
+        }
+
+        function actualizarTemporizadorPred() {
+            const minutos = Math.floor(tiempoPred / 60);
+            const segundos = tiempoPred % 60;
+            document.getElementById('temporizador-pred').textContent = 
+                `${minutos.toString().padStart(2, '0')}:${segundos.toString().padStart(2, '0')}`;
+        }
+
+        // Resetear temporizadores
+        function resetearTemporizadores() {
+            tiempoPrep = 60;
+            tiempoPred = 180;
+            actualizarTemporizadorPrep();
+            actualizarTemporizadorPred();
+            
+            btnIniciarPrep.style.display = 'inline-block';
+            btnDetenerPrep.style.display = 'none';
+            btnIniciarPred.style.display = 'inline-block';
+            btnDetenerPred.style.display = 'none';
+        }
+
+        // Mostrar mensaje temporal
+        function mostrarMensaje(texto, duracion = 3000) {
+            mensajeTiempo.textContent = texto;
+            mensajeTiempo.style.display = 'block';
+            
+            setTimeout(() => {
+                mensajeTiempo.style.display = 'none';
+            }, duracion);
+        }
+
+        // Agregar jugador
+        function agregarJugador() {
+            const nombreInput = document.getElementById('nombre-jugador');
+            const nombre = nombreInput.value.trim();
+            
+            if (nombre && !jugadores.some(j => j.nombre.toLowerCase() === nombre.toLowerCase())) {
+                jugadores.push({
+                    nombre: nombre,
+                    puntaje: 0
+                });
+                
+                actualizarListaJugadores();
+                nombreInput.value = '';
+                nombreInput.focus();
+                
+                mostrarMensaje(`Jugador ${nombre} añadido`, 1500);
+            } else if (nombre) {
+                mostrarMensaje("¡Este jugador ya existe!", 2000);
+            }
+        }
+
+        // Actualizar lista de jugadores
+        function actualizarListaJugadores() {
+            const lista = document.getElementById('lista-jugadores');
+            lista.innerHTML = '';
+            
+            // Ordenar jugadores por puntaje (mayor a menor)
+            jugadores.sort((a, b) => b.puntaje - a.puntaje);
+            
+            jugadores.forEach((jugador, index) => {
+                const item = document.createElement('li');
+                item.innerHTML = `
+                    <span>${index + 1}. ${jugador.nombre}</span>
+                    <span class="puntaje">${jugador.puntaje} pts</span>
+                `;
+                
+                // Destacar al jugador actual
+                if (index === jugadorActualIndex % jugadores.length) {
+                    item.style.backgroundColor = '#fff8e1';
+                    item.style.fontWeight = 'bold';
+                }
+                
+                lista.appendChild(item);
+            });
+        }
+
+        // Reiniciar juego
+        function reiniciarJuego() {
+            // Confirmar reinicio
+            if (!confirm("¿Estás seguro de reiniciar el juego? Se perderán todos los progresos.")) {
+                return;
+            }
+            
+            anguloActual = 0;
+            temasDisponibles = [...temasOriginal];
+            jugadores = [];
+            jugadorActualIndex = 0;
+            
+            rueda.style.transform = 'rotate(0deg)';
+            panelTema.style.display = 'none';
+            panelPrep.style.display = 'none';
+            panelPred.style.display = 'none';
+            document.getElementById('lista-jugadores').innerHTML = '';
+            document.getElementById('nombre-jugador').value = '';
+            
+            clearInterval(intervalo);
+            clearInterval(prepInterval);
+            clearInterval(predInterval);
+            
+            btnGirar.disabled = false;
+            btnDetener.disabled = true;
+            
+            resetearTemporizadores();
+            inicializarRueda();
+            
+            mostrarMensaje("Juego reiniciado", 2000);
+        }
+
+        // Event Listeners
+        btnGirar.addEventListener('click', girarRueda);
+        btnDetener.addEventListener('click', detenerRueda);
+        btnReiniciar.addEventListener('click', reiniciarJuego);
+        btnAceptar.addEventListener('click', agregarJugador);
+        btnIniciarPrep.addEventListener('click', iniciarPreparacion);
+        btnDetenerPrep.addEventListener('click', detenerPreparacion);
+        btnIniciarPred.addEventListener('click', iniciarPredicacion);
+        btnDetenerPred.addEventListener('click', detenerPredicacion);
+
+        // Permitir agregar jugador con Enter
+        document.getElementById('nombre-jugador').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                agregarJugador();
+            }
+        });
+
+        // Inicializar el juego
+        window.addEventListener('DOMContentLoaded', () => {
+            inicializarRueda();
+            btnDetener.disabled = true;
+        });
+    </script>
+</body>
+</html>
